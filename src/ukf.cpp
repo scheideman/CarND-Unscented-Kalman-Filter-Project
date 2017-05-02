@@ -52,6 +52,8 @@ UKF::UKF() {
 
   Hint: one or more values initialized above might be wildly off...
   */
+  x_.fill(0.0);
+  P_.fill(0.0);
 }
 
 UKF::~UKF() {}
@@ -67,6 +69,85 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
   Complete this function! Make sure you switch between lidar and radar
   measurements.
   */
+ /*****************************************************************************
+   *  Initialization
+   ****************************************************************************/
+  if (!is_initialized_) {
+    // first measurement
+    cout << "UKF: " << endl;
+    x_ << 1, 1, 1, 1, 1;
+
+    //assume very little error in initial x and y 
+    // but a lot more in vx, and vy
+    P_ = MatrixXd::Identity(5,5);
+    P_(2,2) = 1000;
+    P_(3,3) = 1000;
+    P_(4,4) = 1000;
+
+    if (meas_package.sensor_type_ == MeasurementPackage::RADAR) {
+      /**
+      Convert radar from polar to cartesian coordinates and initialize state.
+      */
+      float ro = meas_package.raw_measurements_[0];
+      float phi = meas_package.raw_measurements_[1];
+      
+      x_[0] = cos(phi) * ro;
+      x_[1] = sin(phi) * ro;
+    }
+    else if (meas_package.sensor_type_ == MeasurementPackage::LASER) {
+      /**
+      Initialize state.
+      */
+      x_[0] = meas_package.raw_measurements_[0];
+      x_[1] = meas_package.raw_measurements_[1];
+    }
+
+    // done initializing, no need to predict or update
+    is_initialized_ = true;
+    previous_timestamp_ = meas_package.timestamp_;
+    return;
+  }
+
+  /*****************************************************************************
+   *  Prediction
+   ****************************************************************************/
+
+  float noise_ax = 9;
+  float noise_ay = 9;
+
+  //compute the time elapsed between the current and previous measurements
+	/*float dt = (meas_package.timestamp_ - previous_timestamp_) / 1000000.0;	//dt - expressed in seconds
+	previous_timestamp_ = meas_package.timestamp_;
+	
+	//1. Modify the F matrix so that the time is integrated
+	ekf_.F_(0,2) = dt;
+	ekf_.F_(1,3) = dt;
+	//2. Set the process covariance matrix Q
+	MatrixXd G =  MatrixXd(4, 2);
+	G << (dt * dt)/2, 0,
+	     0, (dt*dt)/2,
+	     dt, 0,
+	     0, dt;
+	MatrixXd Qv = MatrixXd(2,2);
+	Qv << noise_ax, 0,
+	      0, noise_ay;
+
+	ekf_.Q_ = G * Qv * G.transpose();
+
+  ekf_.Predict();
+  */
+  /*****************************************************************************
+   *  Update
+   ****************************************************************************/
+
+  if (meas_package.sensor_type_ == MeasurementPackage::RADAR) {
+    UpdateRadar(meas_package);
+  } else {
+    UpdateLidar(meas_package);
+  }
+
+  previous_timestamp_ = meas_package.timestamp_;
+
 }
 
 /**

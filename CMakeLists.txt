@@ -4,6 +4,8 @@ cmake_minimum_required (VERSION 3.5)
 
 add_definitions(-std=c++0x)
 
+include(CMakeToolsHelpers OPTIONAL)
+
 set(sources
    src/ukf.cpp
    src/main.cpp
