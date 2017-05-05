@@ -76,7 +76,9 @@ public:
 
   long long previous_timestamp_;
 
-  MatrixXd H_laser_ = MatrixXd(2,n_x_);
+  MatrixXd H_laser_; 
+  MatrixXd R_laser_;
+  MatrixXd R_radar_; 
 
   /**
    * Constructor

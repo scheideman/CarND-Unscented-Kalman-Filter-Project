@@ -69,9 +69,18 @@ UKF::UKF() {
     double weight = 0.5/(n_aug_+lambda_);
     weights_(i) = weight;
   }
-
+  H_laser_ = MatrixXd(2,n_x_);
   H_laser_ << 1,0,0,0,0,
               0,1,0,0,0;
+
+  R_laser_ = MatrixXd(2,2);
+  R_laser_ << (std_laspx_*std_laspx_), 0,
+             0, (std_laspy_ * std_laspy_);
+  
+  R_radar_ = MatrixXd(3,3);
+  R_radar_ <<    std_radr_*std_radr_, 0, 0,
+          0, std_radphi_*std_radphi_, 0,
+          0, 0,std_radrd_*std_radrd_;
 }
 
 UKF::~UKF() {}
@@ -280,6 +289,23 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
 
   You'll also need to calculate the lidar NIS.
   */
+  VectorXd z = meas_package.raw_measurements_;
+
+  VectorXd z_pred = H_laser_ * x_;
+	VectorXd y = z - z_pred;
+	
+	MatrixXd Ht = H_laser_.transpose();
+
+	MatrixXd S = H_laser_ * P_ * Ht + R_laser_;
+	MatrixXd Si = S.inverse();
+	MatrixXd PHt = P_ * Ht;
+	MatrixXd K = PHt * Si;
+	//new estimate
+	x_ = x_ + (K * y);
+	long x_size = x_.size();
+	MatrixXd I = MatrixXd::Identity(x_size, x_size);
+	P_ = (I - K * H_laser_) * P_;
+
 
 }
 
@@ -340,11 +366,8 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   }
 
   //add measurement noise covariance matrix
-  MatrixXd R = MatrixXd(3,3);
-  R <<    std_radr_*std_radr_, 0, 0,
-          0, std_radphi_*std_radphi_, 0,
-          0, 0,std_radrd_*std_radrd_;
-  S = S + R;
+ 
+  S = S + R_radar_;
 
   
   MatrixXd Tc = MatrixXd(n_x_, 3);
