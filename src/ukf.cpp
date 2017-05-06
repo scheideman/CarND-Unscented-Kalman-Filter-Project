@@ -25,10 +25,10 @@ UKF::UKF() {
   P_ = MatrixXd(5, 5);
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  std_a_ = 30;
+  std_a_ = 2;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 30;
+  std_yawdd_ = (3 * M_PI) / 8;
 
   // Laser measurement noise standard deviation position1 in m
   std_laspx_ = 0.15;
@@ -81,6 +81,7 @@ UKF::UKF() {
   R_radar_ <<    std_radr_*std_radr_, 0, 0,
           0, std_radphi_*std_radphi_, 0,
           0, 0,std_radrd_*std_radrd_;
+  is_initialized_ = false;
 }
 
 UKF::~UKF() {}
@@ -292,7 +293,7 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
   VectorXd z = meas_package.raw_measurements_;
 
   VectorXd z_pred = H_laser_ * x_;
-	VectorXd y = z - z_pred;
+	VectorXd z_diff = z - z_pred;
 	
 	MatrixXd Ht = H_laser_.transpose();
 
@@ -301,10 +302,12 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
 	MatrixXd PHt = P_ * Ht;
 	MatrixXd K = PHt * Si;
 	//new estimate
-	x_ = x_ + (K * y);
+	x_ = x_ + (K * z_diff);
 	long x_size = x_.size();
 	MatrixXd I = MatrixXd::Identity(x_size, x_size);
 	P_ = (I - K * H_laser_) * P_;
+
+  NIS_laser_ = z_diff.transpose() * S.inverse() * z_diff;
 
 
 }
@@ -404,5 +407,6 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   x_ = x_ + K * z_diff;
   P_ = P_ - K*S*K.transpose();
 
+  NIS_radar_ = z_diff.transpose() * S.inverse() * z_diff;
 
-}
+} 
