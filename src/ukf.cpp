@@ -108,9 +108,11 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
     //assume very little error in initial x and y 
     // but a lot more in vx, and vy
     P_ = MatrixXd::Identity(5,5);
-    P_(2,2) = 1000;
-    P_(3,3) = 1000;
-    P_(4,4) = 1000;
+
+    // TODO: this initialization was causing issues
+    P_(2,2) = 100;
+    P_(3,3) = 100;
+    P_(4,4) = 100;
 
     if (meas_package.sensor_type_ == MeasurementPackage::RADAR) {
       /**
@@ -176,12 +178,14 @@ void UKF::Prediction(double delta_t) {
   //create augmented state covariance
   MatrixXd P_aug = MatrixXd(7, 7);
   MatrixXd Xsig_aug = MatrixXd(n_aug_, 2 * n_aug_ + 1);
+  
 
   x_aug.head(5) = x_;
-  // TODO: Is this correct?
-  x_aug(5) = std_a_;
-  x_aug(6) = std_yawdd_;
+  // Assuming mean state of process noise is zero for both, as per the lectures
+  x_aug(5) = 0;
+  x_aug(6) = 0;
 
+  //std::cout << P_ << std::endl;
   P_aug.fill(0.0);
   P_aug.topLeftCorner(5,5) = P_;
   P_aug(5,5) = std_a_*std_a_;
@@ -191,6 +195,7 @@ void UKF::Prediction(double delta_t) {
   MatrixXd L = P_aug.llt().matrixL();
 
   //create augmented sigma points
+  Xsig_aug.fill(0.0);
   Xsig_aug.col(0)  = x_aug;
   for (int i = 0; i< n_aug_; i++)
   {
@@ -341,10 +346,15 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
     double v1 = cos(yaw)*v;
     double v2 = sin(yaw)*v;
 
+    double c = sqrt(p_x*p_x + p_y*p_y);
+    if(c < 0.0001){
+      c = 0.0001;
+    }
+
     // measurement model
-    Zsig(0,i) = sqrt(p_x*p_x + p_y*p_y);                        //r
+    Zsig(0,i) = c;                        //r
     Zsig(1,i) = atan2(p_y,p_x);                                 //phi
-    Zsig(2,i) = (p_x*v1 + p_y*v2 ) / sqrt(p_x*p_x + p_y*p_y);   //r_dot
+    Zsig(2,i) = (p_x*v1 + p_y*v2 ) / c;   //r_dot
   }
 
   //mean predicted measurement
