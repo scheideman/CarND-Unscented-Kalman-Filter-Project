@@ -25,10 +25,10 @@ UKF::UKF() {
   P_ = MatrixXd(5, 5);
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  std_a_ = 2;
+  std_a_ = 4;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = (3 * M_PI) / 8;
+  std_yawdd_ = (6 * M_PI) / 8;
 
   // Laser measurement noise standard deviation position1 in m
   std_laspx_ = 0.15;
@@ -69,6 +69,7 @@ UKF::UKF() {
     double weight = 0.5/(n_aug_+lambda_);
     weights_(i) = weight;
   }
+
   H_laser_ = MatrixXd(2,n_x_);
   H_laser_ << 1,0,0,0,0,
               0,1,0,0,0;
@@ -103,18 +104,21 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
   if (!is_initialized_) {
     // first measurement
     cout << "UKF: " << endl;
-    x_ << 1, 1, 1, 1, 1;
+    x_ << 0.5, 0.5, 1, 1, M_PI/8;
 
     //assume very little error in initial x and y 
     // but a lot more in vx, and vy
     P_ = MatrixXd::Identity(5,5);
 
     // TODO: this initialization was causing issues
-    P_(2,2) = 100;
-    P_(3,3) = 100;
-    P_(4,4) = 100;
+   
 
     if (meas_package.sensor_type_ == MeasurementPackage::RADAR) {
+      P_(0,0) = 1; 
+      P_(1,1) = 1;
+      P_(2,2) = 100;
+      P_(3,3) = 1;
+      P_(4,4) = 1000;
       /**
       Convert radar from polar to cartesian coordinates and initialize state.
       */
@@ -125,6 +129,11 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
       x_[1] = sin(phi) * ro;
     }
     else if (meas_package.sensor_type_ == MeasurementPackage::LASER) {
+      P_(0,0) = 0.01; 
+      P_(1,1) = 0.01;
+      P_(2,2) = 1;
+      P_(3,3) = 1;
+      P_(4,4) = 1;
       /**
       Initialize state.
       */
@@ -333,7 +342,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   VectorXd z = meas_package.raw_measurements_;
 
   MatrixXd Zsig = MatrixXd(3, 2 * n_aug_ + 1);
-
+  Zsig.fill(0.0);
    //transform sigma points into measurement space
   for (int i = 0; i < 2 * n_aug_ + 1; i++) {  //2n+1 simga points
 

@@ -127,6 +127,7 @@ int main(int argc, char* argv[]) {
       gt_package.gt_values_ = VectorXd(4);
       gt_package.gt_values_ << x_gt, y_gt, vx_gt, vy_gt;
       gt_pack_list.push_back(gt_package);
+
   }
 
   // Create a UKF instance
@@ -224,7 +225,7 @@ int main(int argc, char* argv[]) {
   cout << "RMSE" << endl << tools.CalculateRMSE(estimations, ground_truth) << endl;
 
   // close files
-  if (out_file_.is_open()) {
+    if (out_file_.is_open()) {
     out_file_.close();
   }
 
