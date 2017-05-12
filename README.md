@@ -1,7 +1,17 @@
-# Unscented Kalman Filter Project Starter Code
+# Unscented Kalman Filter Project
 Self-Driving Car Engineer Nanodegree Program
-
 ---
+
+Below is the visualization of the UKF output. 
+
+![Alt text](images/gtVSest.png?raw=true "Visualize result")
+
+The RMSE I got was: {0.0716588,0.0823478,0.276016,0.21879} for {px,py,vx,vy}
+
+The parameters I had to tune were the initialization values for the mean state and covariance, as well as the process noise. For the process noise, the lectures recommended half of the maximum acceleration you would expect of the object you are tracking. I ended up doing guess and check and found std_a_ = 2 and std_yawdd_ = (2 * M_PI) / 8 to give the best results. 
+
+![Alt text](images/radar-nis.png?raw=true "Radar NIS")
+
 
 ## Dependencies
 
@@ -17,30 +27,3 @@ Self-Driving Car Engineer Nanodegree Program
 4. Run it: `./UnscentedKF path/to/input.txt path/to/output.txt`. You can find
    some sample inputs in 'data/'.
     - eg. `./UnscentedKF ../data/obj_pose-laser-radar-synthetic-input.txt`
-
-## Editor Settings
-
-We've purposefully kept editor configuration files out of this repo in order to
-keep it as simple and environment agnostic as possible. However, we recommend
-using the following settings:
-
-* indent using spaces
-* set tab width to 2 spaces (keeps the matrices in source code aligned)
-
-## Code Style
-
-Please stick to [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html) as much as possible.
-
-## Generating Additional Data
-
-This is optional!
-
-If you'd like to generate your own radar and lidar data, see the
-[utilities repo](https://github.com/udacity/CarND-Mercedes-SF-Utilities) for
-Matlab scripts that can generate additional data.
-
-## Project Instructions and Rubric
-
-This information is only accessible by people who are already enrolled in Term 2
-of CarND. If you are enrolled, see [the project page](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/c3eb3583-17b2-4d83-abf7-d852ae1b9fff/concepts/f437b8b0-f2d8-43b0-9662-72ac4e4029c1)
-for instructions and the project rubric.
