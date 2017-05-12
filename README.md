@@ -8,7 +8,7 @@ Below is the visualization of the UKF output.
 
 The RMSE I got was: {0.0716588,0.0823478,0.276016,0.21879} for {px,py,vx,vy}
 
-The parameters I had to tune were the initialization values for the mean state and covariance, as well as the process noise. For the process noise, the lectures recommended half of the maximum acceleration you would expect of the object you are tracking. I ended up doing guess and check and found std_a_ = 2 and std_yawdd_ = (2 * M_PI) / 8 to give the best results. 
+The parameters I had to tune were the initialization values for the mean state and covariance, as well as the process noise. For the process noise, the lectures recommended half of the maximum acceleration you would expect of the object you are tracking. I ended up doing guess and check and found std_a_ = 2 and std_yawdd_ = (2 * M_PI) / 8 to give the best results. Below is the NIS plot for the radar measurements. 
 
 ![Alt text](images/radar-nis.png?raw=true "Radar NIS")
 
